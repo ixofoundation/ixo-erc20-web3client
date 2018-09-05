@@ -73,8 +73,10 @@ class Dashboard extends Component {
     const abi = JSON.parse(config.get('abi'));
     this.state = {
       isContractOwner: false,
-      transactionQuantity: 0,
-      transactionBeneficiaryAccount: '',
+      mintingTransactionQuantity: 0,
+      mintingTransactionBeneficiaryAccount: '',
+      transferTransactionQuantity: 0,
+      transferTransactionBeneficiaryAccount: '',
       web3Proxy: new Web3Proxy(abi, config.get('contractAddress'), this.handleSelectionChange, config.get('desiredNetwork'))
     }
   }
@@ -197,20 +199,28 @@ class Dashboard extends Component {
       }
   }
 
-  handleTransactionQuantityChange = (event) => {
-    this.setState({transactionQuantity: parseInt(event.target.value)});
+  handleMintingTransactionQuantityChange = (event) => {
+    this.setState({mintingTransactionQuantity: parseInt(event.target.value)});
   }
 
-  handleTransactionBeneficiaryAddressChange = (event) => {
-    this.setState({transactionBeneficiaryAccount: event.target.value});
+  handleMintingTransactionBeneficiaryAddressChange = (event) => {
+    this.setState({mintingTransactionBeneficiaryAccount: event.target.value});
+  }
+
+  handleTransferTransactionQuantityChange = (event) => {
+    this.setState({transferTransactionQuantity: parseInt(event.target.value)});
+  }
+
+  handleTransferTransactionBeneficiaryAddressChange = (event) => {
+    this.setState({transferTransactionBeneficiaryAccount: event.target.value});
   }
 
   handleTokenMinting = (event) => {
-    if (this.state.transactionBeneficiaryAccount && this.state.transactionQuantity > 0) {
-      this.state.web3Proxy.mintTo(this.state.transactionBeneficiaryAccount, this.state.transactionQuantity)
+    if (this.state.mintingTransactionBeneficiaryAccount && this.state.mintingTransactionQuantity > 0) {
+      this.state.web3Proxy.mintTo(this.state.mintingTransactionBeneficiaryAccount, this.state.mintingTransactionQuantity)
       .then(txHash=>{
         this.props.addOutputLine(`TX: ${txHash}`);
-        this.setState({ transactionBeneficiaryAccount: "", transactionQuantity: 0 });
+        this.setState({ mintingTransactionBeneficiaryAccount: "", mintingTransactionQuantity: 0 });
       })
       .catch(error=>{
         this.props.addOutputLine(`error: ${error}`);
@@ -219,11 +229,11 @@ class Dashboard extends Component {
   }
 
   handleTokenTransfer = (event) => {
-    if (this.state.transactionBeneficiaryAccount && this.state.transactionQuantity > 0) {
-      this.state.web3Proxy.transferTo(this.state.transactionBeneficiaryAccount, this.state.transactionQuantity)
+    if (this.state.transferTransactionBeneficiaryAccount && this.state.transferTransactionQuantity > 0) {
+      this.state.web3Proxy.transferTo(this.state.transferTransactionBeneficiaryAccount, this.state.transferTransactionQuantity)
       .then(txHash=>{
         this.props.addOutputLine(`TX: ${txHash}`);
-        this.setState({ transactionBeneficiaryAccount: "", transactionQuantity: 0 });
+        this.setState({ transferTransactionBeneficiaryAccount: "", transferTransactionQuantity: 0 });
       })
       .catch(error=>{
         this.props.addOutputLine(`error: ${error}`);
@@ -250,10 +260,10 @@ class Dashboard extends Component {
       <DashboardConsole>
         {this.state.isContractOwner&&<ControlStrip>
           <MintInput
-            quantity={this.state.transactionQuantity}
-            handleQuantityChange={this.handleTransactionQuantityChange}
-            beneficiaryAddress={this.state.transactionBeneficiaryAccount}
-            handleBeneficiaryAddressChange={this.handleTransactionBeneficiaryAddressChange}
+            quantity={this.state.mintingTransactionQuantity}
+            handleQuantityChange={this.handleMintingTransactionQuantityChange}
+            beneficiaryAddress={this.state.mintingTransactionBeneficiaryAccount}
+            handleBeneficiaryAddressChange={this.handleMintingTransactionBeneficiaryAddressChange}
             handleTokenMinting={this.handleTokenMinting}
           />
         </ControlStrip>}
@@ -264,10 +274,10 @@ class Dashboard extends Component {
         </ControlStrip>
         <ControlStrip>
           <TransferInput
-            quantity={this.state.transactionQuantity}
-            handleQuantityChange={this.handleTransactionQuantityChange}
-            beneficiaryAddress={this.state.transactionBeneficiaryAccount}
-            handleBeneficiaryAddressChange={this.handleTransactionBeneficiaryAddressChange}
+            quantity={this.state.transferTransactionQuantity}
+            handleQuantityChange={this.handleTransferTransactionQuantityChange}
+            beneficiaryAddress={this.state.transferTransactionBeneficiaryAccount}
+            handleBeneficiaryAddressChange={this.handleTransferTransactionBeneficiaryAddressChange}
             handleTokenTransfer={this.handleTokenTransfer}
           />
         </ControlStrip>
