@@ -4,10 +4,10 @@ import networks from '../web3/networks';
 
 export default class Web3Proxy {
 
-    constructor(contractAbiJson, contractAddress, accountSelectionChangeHandler, defaultNetwork=networks.MAIN_NETWORK) {
+    constructor(contractAbiJson, contractAddress, selectionChangeHandler, defaultNetwork=networks.MAIN_NETWORK) {
         this._contractAbiJson = contractAbiJson;
         this._contractAddress = contractAddress;
-        this._accountSelectionChangeHandler = accountSelectionChangeHandler;
+        this._selectionChangeHandler = selectionChangeHandler;
         this._defaultNetwork = defaultNetwork;
 
         const { web3 } = window;
@@ -21,14 +21,18 @@ export default class Web3Proxy {
         this._web3 = new Web3(provider);
         this._contract = new this._web3.eth.Contract(this._contractAbiJson, this._contractAddress);
         this._accountPollInterval = setInterval(() => {
-            this._web3.eth.getAccounts().then(accounts=>{
-                let account = (accounts.length > 0)?accounts[0]:undefined;
-                if (account !== this._selectedAccount) {
-                    this._selectedAccount = account;
-                    this._accountSelectionChangeHandler();
-                }
-            });
+            this._pollForAccount();
         }, 100);
+    }
+
+    _pollForAccount = () => {
+        this._web3.eth.getAccounts().then(accounts=>{
+            let account = (accounts.length > 0)?accounts[0]:undefined;
+            if (account !== this._selectedAccount) {
+                this._selectedAccount = account;
+                this._selectionChangeHandler();
+            }
+        });
     }
 
     getSelectedAccount = () => {
@@ -47,6 +51,9 @@ export default class Web3Proxy {
             .call({ from: account })
             .then(result=>{
                 resolve(result);
+            })
+            .catch(error=>{
+                reject(error);
             });
         })        
     }    

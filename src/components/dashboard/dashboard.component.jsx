@@ -70,20 +70,27 @@ class Dashboard extends Component {
 
     const abi = JSON.parse(config.get('abi'));
     this.state = {
-      selectedAccount: '',
+      isContractOwner: false,
       quantityToMint: 0,
       accountToMintTo: '',
-      web3Proxy: new Web3Proxy(abi, config.get('contractAddress'), this.handleAccountSelectionChange, config.get('desiredNetwork'))
+      web3Proxy: new Web3Proxy(abi, config.get('contractAddress'), this.handleSelectionChange, config.get('desiredNetwork'))
     }
   }
 
-  handleAccountSelectionChange = () => {
-    console.log('*****');
-    this.setState({ selectedAccount: this.state.web3Proxy.getSelectedAccount()});
+  componentDidMount() {
+    this.determineIfContractOwner();
   }
 
-  isContractOwner = () => {
-    return this.state.selectedAccount.toUpperCase() === config.get('contractOwner').toUpperCase();
+  handleSelectionChange = () => {
+    this.determineIfContractOwner();
+  }
+
+  determineIfContractOwner = () => {
+    this.state.web3Proxy.getNetwork().then(network=>{
+      const isContractNetwork = config.get('contractNetwork') === network;
+      const isContractOwner = isContractNetwork && this.state.web3Proxy.getSelectedAccount().toUpperCase() === config.get('contractOwner').toUpperCase();      
+      this.setState({ isContractOwner });
+    });
   }
 
   getDefaultAccount = () => {
@@ -109,11 +116,16 @@ class Dashboard extends Component {
   }
 
   getBalance = () => {
-    this.state.web3Proxy.getAccounts().then(accounts=>{
+    this.state.web3Proxy.getAccounts()
+    .then(accounts=>{
       const account = (accounts.length > 0)?accounts[0]:undefined;
       if (account) {
-        this.state.web3Proxy.getBalance(account).then(balance=>{
+        this.state.web3Proxy.getBalance(account)
+        .then(balance=>{
           this.props.addOutputLine(`${account}: ${balance}`);
+        })
+        .catch(error=>{
+          this.props.addOutputLine(`${error}`);
         })
       }
     });
@@ -208,7 +220,7 @@ class Dashboard extends Component {
 
     return (
       <DashboardConsole>
-        {this.isContractOwner()&&<ControlStrip>
+        {this.state.isContractOwner&&<ControlStrip>
           <Button onClick={this.setMinter}>Set Minter</Button>
           <InputField type={"number"} value={this.state.quantityToMint} onChange={this.handleMintQuantityChange} step={1000} min={0} />
           <Button onClick={this.mint}>Mint To</Button>
