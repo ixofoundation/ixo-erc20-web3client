@@ -60,6 +60,7 @@ const TerminalConsole = styled.div`
 const OutputLineList = styled.ul`
   list-style: none;
   padding-inline-start: 10px;
+  font-family: "Courier New";
 `;
 
 class Dashboard extends Component {
@@ -69,51 +70,58 @@ class Dashboard extends Component {
 
     const abi = JSON.parse(config.get('abi'));
     this.state = {
+      selectedAccount: '',
       quantityToMint: 0,
       accountToMintTo: '',
-      web3Proxy: new Web3Proxy(abi, config.get('contractAddress'), config.get('desiredNetwork'))
+      web3Proxy: new Web3Proxy(abi, config.get('contractAddress'), this.handleAccountSelectionChange, config.get('desiredNetwork'))
     }
   }
 
-  // getDefaultAccount = () => {
-  //   const account = this.state.web3Proxy.getDefaultAccount();
-  //   this.props.addOutputLine(account?account:"not set");
-  // }
+  handleAccountSelectionChange = () => {
+    console.log('*****');
+    this.setState({ selectedAccount: this.state.web3Proxy.getSelectedAccount()});
+  }
 
-  // setDefaultAccount = () => {
-  //   this.state.web3Proxy.getAccounts().then(accounts=>{
-  //     const account = (accounts.length > 0)?accounts[0]:"no account";
-  //     this.state.web3Proxy.setDefaultAccount(account);
-  //   });
-  // }
+  isContractOwner = () => {
+    return this.state.selectedAccount.toUpperCase() === config.get('contractOwner').toUpperCase();
+  }
 
-  // getAccount = () => {
-  //   this.state.web3Proxy.getAccounts().then(accounts=>{
-  //     const account = (accounts.length > 0)?accounts[0]:"no account";
-  //     this.props.addOutputLine(account);  
-  //   });
-  // }
+  getDefaultAccount = () => {
+    const account = this.state.web3Proxy.getDefaultAccount();
+    this.props.addOutputLine(account?account:"not set");
+  }
 
-  // getAccounts = () => {
-  //   this.state.web3Proxy.getAccounts().then(accounts=>{
-  //     this.props.addOutputLine(JSON.stringify(accounts));  
-  //   });
-  // }
+  setDefaultAccount = () => {
+    this.state.web3Proxy.getAccounts().then(accounts=>{
+      const account = (accounts.length > 0)?accounts[0]:"no account";
+      this.state.web3Proxy.setDefaultAccount(account);
+    });
+  }
 
-  // getBalance = () => {
-  //   this.state.web3Proxy.getAccounts().then(accounts=>{
-  //     const account = (accounts.length > 0)?accounts[0]:undefined;
-  //     if (account) {
-  //       this.state.web3Proxy.getBalance(account).then(balance=>{
-  //         this.props.addOutputLine(`${account}: ${balance}`);
-  //       })
-  //     }
-  //   });
-  // }
+  getAccount = () => {
+    this.props.addOutputLine(this.state.web3Proxy.getSelectedAccount());
+  }
 
-  // getDesiredNetwork = () => {
-  //   this.props.addOutputLine(this.state.web3Proxy.getDefaultNetwork());
-  // }
+  getAccounts = () => {
+    this.state.web3Proxy.getAccounts().then(accounts=>{
+      this.props.addOutputLine(JSON.stringify(accounts));  
+    });
+  }
+
+  getBalance = () => {
+    this.state.web3Proxy.getAccounts().then(accounts=>{
+      const account = (accounts.length > 0)?accounts[0]:undefined;
+      if (account) {
+        this.state.web3Proxy.getBalance(account).then(balance=>{
+          this.props.addOutputLine(`${account}: ${balance}`);
+        })
+      }
+    });
+  }
+
+  getDesiredNetwork = () => {
+    this.props.addOutputLine(this.state.web3Proxy.getDefaultNetwork());
+  }
 
   getNetwork = () => {
     this.state.web3Proxy.getNetwork().then(network=>{
@@ -121,35 +129,20 @@ class Dashboard extends Component {
     }) 
   }
 
-//   isExpectedNetwork = () => {
-//     this.state.web3Proxy.isDesiredNetwork().then(isExpected=>{
-//       this.props.addOutputLine(isExpected?"TRUE":"FALSE");
-//     })
-//   }
+  isExpectedNetwork = () => {
+    this.state.web3Proxy.isDesiredNetwork().then(isExpected=>{
+      this.props.addOutputLine(isExpected?"TRUE":"FALSE");
+    })
+  }
 
-// //   transfer = () => {
-// //     this.state.web3Proxy.getAccounts().then(accounts=>{
-// //       const sendingAddress = (accounts.length > 0)?accounts[0]:undefined;
-// //       if (sendingAddress) {
-// // the beneficiaryAddress global config does not exist anymore        
-// //         this.state.web3Proxy.transferTo(sendingAddress, config.get('beneficiaryAddress'), this.state.quantityToMint)
-// //         .then(txHash=>{
-// //           this.props.addOutputLine(`TX: ${txHash}`);
-// //         })
-// //         .catch(error=>{
-// //           this.props.addOutputLine(`error: ${error}`);
-// //         })
-// //       } 
-// //     });
-// //   }
-
-//   setMinter = () => {
+//   transfer = () => {
 //     this.state.web3Proxy.getAccounts().then(accounts=>{
-//       const mintingAddress = (accounts.length > 0)?accounts[0]:undefined;
-//       if (mintingAddress) {
-//         this.state.web3Proxy.setMinter(mintingAddress)
-//         .then(response=>{
-//           this.props.addOutputLine(`response: ${response}`);
+//       const sendingAddress = (accounts.length > 0)?accounts[0]:undefined;
+//       if (sendingAddress) {
+// the beneficiaryAddress global config does not exist anymore        
+//         this.state.web3Proxy.transferTo(sendingAddress, config.get('beneficiaryAddress'), this.state.quantityToMint)
+//         .then(txHash=>{
+//           this.props.addOutputLine(`TX: ${txHash}`);
 //         })
 //         .catch(error=>{
 //           this.props.addOutputLine(`error: ${error}`);
@@ -158,30 +151,45 @@ class Dashboard extends Component {
 //     });
 //   }
 
-//   mint = () => {
-//     if (this.state.accountToMintTo) {
-//       this.state.web3Proxy.getAccounts().then(accounts=>{
-//         const mintingAddress = (accounts.length > 0)?accounts[0]:undefined;
-//         if (mintingAddress) {
-//           this.state.web3Proxy.mintTo(mintingAddress, this.state.accountToMintTo, this.state.quantityToMint)
-//           .then(txHash=>{
-//             this.props.addOutputLine(`TX: ${txHash}`);
-//           })
-//           .catch(error=>{
-//             this.props.addOutputLine(`error: ${error}`);
-//           })
-//         } 
-//       });
-//       }
-//   }
+  setMinter = () => {
+    this.state.web3Proxy.getAccounts().then(accounts=>{
+      const mintingAddress = (accounts.length > 0)?accounts[0]:undefined;
+      if (mintingAddress) {
+        this.state.web3Proxy.setMinter(mintingAddress)
+        .then(response=>{
+          this.props.addOutputLine(`response: ${response}`);
+        })
+        .catch(error=>{
+          this.props.addOutputLine(`error: ${error}`);
+        })
+      } 
+    });
+  }
 
-//   handleMintQuantityChange = (event) => {
-//     this.setState({quantityToMint: event.target.value});
-//   }
+  mint = () => {
+    if (this.state.accountToMintTo) {
+      this.state.web3Proxy.getAccounts().then(accounts=>{
+        const mintingAddress = (accounts.length > 0)?accounts[0]:undefined;
+        if (mintingAddress) {
+          this.state.web3Proxy.mintTo(mintingAddress, this.state.accountToMintTo, this.state.quantityToMint)
+          .then(txHash=>{
+            this.props.addOutputLine(`TX: ${txHash}`);
+          })
+          .catch(error=>{
+            this.props.addOutputLine(`error: ${error}`);
+          })
+        } 
+      });
+      }
+  }
 
-//   handleAccountToMintToChange = (event) => {
-//     this.setState({accountToMintTo: event.target.value});
-//   }
+  handleMintQuantityChange = (event) => {
+    this.setState({quantityToMint: event.target.value});
+  }
+
+  handleAccountToMintToChange = (event) => {
+    this.setState({accountToMintTo: event.target.value});
+  }
 
   clearTerminal = () => {
     this.props.clearOutputs();
@@ -200,15 +208,16 @@ class Dashboard extends Component {
 
     return (
       <DashboardConsole>
-        {/* <ControlStrip>
+        {this.isContractOwner()&&<ControlStrip>
           <Button onClick={this.setMinter}>Set Minter</Button>
           <InputField type={"number"} value={this.state.quantityToMint} onChange={this.handleMintQuantityChange} step={1000} min={0} />
           <Button onClick={this.mint}>Mint To</Button>
           <InputField value={this.state.accountToMintTo} onChange={this.handleAccountToMintToChange} />
-        </ControlStrip> */}
-        <ControlStrip>
+        </ControlStrip>}
+        <ControlStrip>        
+          <Button onClick={this.getAccount}>Account</Button>
           <Button onClick={this.getNetwork}>Network</Button>
-          {/* <Button onClick={this.getBalance}>Balance</Button> */}
+          <Button onClick={this.getBalance}>Balance</Button>
         </ControlStrip>
         <TerminalConsole>
           <OutputLineList>

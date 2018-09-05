@@ -15,8 +15,9 @@ const environments = [
 const environment = environments.find(env=>{return env.network===process.env.ETHEREUM_NETWORK});
 const config = {
   abi: JSON.stringify(abi),
+  desiredNetwork: environment.network,
   contractAddress: environment.contract,
-  desiredNetwork: environment.network
+  contractOwner: environment.owner
 };
 
 export default config;
