@@ -86,12 +86,12 @@ export default class Web3Proxy {
         });
     }
 
-    transferTo = (sendingAddress, beneficiaryAddress, amount) => {
+    transferTo = (beneficiaryAddress, amount) => {
         const contract = this._contract;
 
         return new Promise((resolve, reject) => {
             contract.methods.transfer(beneficiaryAddress, amount)
-            .send({ from: sendingAddress })
+            .send({ from: this._selectedAccount })
             .on('transactionHash', hash=>{
                 resolve(hash);
             })
