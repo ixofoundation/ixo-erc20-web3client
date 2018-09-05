@@ -5,6 +5,7 @@ import networks from '../web3/networks';
 export default class Web3Proxy {
 
     constructor(contractAbiJson, contractAddress, selectionChangeHandler, defaultNetwork=networks.MAIN_NETWORK) {
+        this._selectedAccount = "";
         this._contractAbiJson = contractAbiJson;
         this._contractAddress = contractAddress;
         this._selectionChangeHandler = selectionChangeHandler;
@@ -118,12 +119,12 @@ export default class Web3Proxy {
         })
     }
 
-    mintTo = (mintingAddress, beneficiaryAddress, amount) => {
+    mintTo = (beneficiaryAddress, amount) => {
         const contract = this._contract;
 
         return new Promise((resolve, reject) => {
             contract.methods.mint(beneficiaryAddress, amount)
-            .send({ from: mintingAddress })
+            .send({ from: this._selectedAccount })
             .on('transactionHash', hash=>{
                 resolve(hash);
             })

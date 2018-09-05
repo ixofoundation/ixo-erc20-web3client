@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import config from 'react-global-configuration';
 import styled from 'styled-components';
 import Web3Proxy from '../../web3/web3-proxy';
+import MintInput from '../mint-input/mint-input';
 
 const DashboardConsole = styled.div`
   background-color: lightblue;
@@ -179,11 +180,11 @@ class Dashboard extends Component {
   }
 
   mint = () => {
-    if (this.state.accountToMintTo) {
+    if (this.state.mintBeneficiaryAddress) {
       this.state.web3Proxy.getAccounts().then(accounts=>{
         const mintingAddress = (accounts.length > 0)?accounts[0]:undefined;
         if (mintingAddress) {
-          this.state.web3Proxy.mintTo(mintingAddress, this.state.accountToMintTo, this.state.quantityToMint)
+          this.state.web3Proxy.mintTo(mintingAddress, this.state.mintBeneficiaryAddress, this.state.quantityToMint)
           .then(txHash=>{
             this.props.addOutputLine(`TX: ${txHash}`);
           })
@@ -195,12 +196,24 @@ class Dashboard extends Component {
       }
   }
 
-  handleMintQuantityChange = (event) => {
-    this.setState({quantityToMint: event.target.value});
+  handleQuantityToMintChange = (event) => {
+    this.setState({quantityToMint: parseInt(event.target.value)});
   }
 
-  handleAccountToMintToChange = (event) => {
+  handleMintBeneficiaryAddressChange = (event) => {
     this.setState({accountToMintTo: event.target.value});
+  }
+
+  handleTokenMinting = (event) => {
+    if (this.state.accountToMintTo && this.state.quantityToMint > 0) {
+      this.state.web3Proxy.mintTo(this.state.accountToMintTo, this.state.quantityToMint)
+      .then(txHash=>{
+        this.props.addOutputLine(`TX: ${txHash}`);
+      })
+      .catch(error=>{
+        this.props.addOutputLine(`error: ${error}`);
+      })
+    } 
   }
 
   clearTerminal = () => {
@@ -221,10 +234,17 @@ class Dashboard extends Component {
     return (
       <DashboardConsole>
         {this.state.isContractOwner&&<ControlStrip>
-          <Button onClick={this.setMinter}>Set Minter</Button>
-          <InputField type={"number"} value={this.state.quantityToMint} onChange={this.handleMintQuantityChange} step={1000} min={0} />
+          {/* <Button onClick={this.setMinter}>Set Minter</Button> */}
+          {/* <InputField type={"number"} value={this.state.quantityToMint} onChange={this.handleMintQuantityChange} step={1000} min={0} />
           <Button onClick={this.mint}>Mint To</Button>
-          <InputField value={this.state.accountToMintTo} onChange={this.handleAccountToMintToChange} />
+          <InputField value={this.state.accountToMintTo} onChange={this.handleAccountToMintToChange} /> */}
+          <MintInput
+            quantity={this.state.quantityToMint}
+            handleQuantityChange={this.handleQuantityToMintChange}
+            beneficiaryAddress={this.state.accountToMintTo}
+            handleBeneficiaryAddressChange={this.handleMintBeneficiaryAddressChange}
+            handleTokenMinting={this.handleTokenMinting}
+          />
         </ControlStrip>}
         <ControlStrip>        
           <Button onClick={this.getAccount}>Account</Button>
