@@ -16,7 +16,7 @@ class FormContainer extends Component {
     const { seo_title } = this.state;
     return (
         <div>
-            <h1>{process.env.SEASON}</h1>
+            <h1>{process.env.ETHEREUM_NETWORK}</h1>
             <form id="article-form">
                 <Input
                     text="SEO title"

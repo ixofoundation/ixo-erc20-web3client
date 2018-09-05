@@ -19,7 +19,7 @@ module.exports = () => {
         module: {
             rules: [
                 {
-                    test: /\.js$/,
+                    test: /\.(js|jsx)$/,
                     exclude: /node_modules/,
                     use: {
                         loader: "babel-loader"
@@ -32,15 +32,26 @@ module.exports = () => {
                             loader: "html-loader"
                         }
                     ]
+                },
+                {
+                    test: /\.(png|jpg|gif|svg)$/i,
+                    use: [
+                      {
+                        loader: 'url-loader'
+                      }
+                    ]
                 }
             ]
         },
+        resolve: {
+            extensions: ['*', '.js', '.jsx']
+        },         
         plugins: [
-        new HtmlWebPackPlugin({
-            template: "./src/index.html",
-            filename: "./index.html"
-        }),
-        new webpack.DefinePlugin(envKeys)
+            new HtmlWebPackPlugin({
+                template: "./src/index.html",
+                filename: "./index.html"
+            }),
+            new webpack.DefinePlugin(envKeys)
       ]
     };
 }
