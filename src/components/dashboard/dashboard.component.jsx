@@ -209,6 +209,7 @@ class Dashboard extends Component {
       this.state.web3Proxy.mintTo(this.state.accountToMintTo, this.state.quantityToMint)
       .then(txHash=>{
         this.props.addOutputLine(`TX: ${txHash}`);
+        this.setState({ accountToMintTo: "", quantityToMint: 0 });
       })
       .catch(error=>{
         this.props.addOutputLine(`error: ${error}`);
