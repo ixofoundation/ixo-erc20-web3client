@@ -259,6 +259,7 @@ class Dashboard extends Component {
     return (
       <DashboardConsole>
         {this.state.isContractOwner&&<ControlStrip>
+          <Button onClick={this.setMinter}>Set Minter</Button>
           <MintInput
             quantity={this.state.mintingTransactionQuantity}
             handleQuantityChange={this.handleMintingTransactionQuantityChange}
