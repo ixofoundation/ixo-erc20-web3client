@@ -1,0 +1,29 @@
+[
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_token",
+				"type": "address"
+			},
+			{
+				"name": "_authoriser",
+				"type": "address"
+			},
+			{
+				"name": "_name",
+				"type": "bytes32"
+			}
+		],
+		"name": "createWallet",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]

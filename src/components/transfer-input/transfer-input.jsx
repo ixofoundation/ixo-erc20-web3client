@@ -3,8 +3,6 @@ import styled from 'styled-components';
 import PropTypes from "prop-types";
 
 const Container = styled.div`
-    border: 1px solid black;
-    border-radius: 2.5px;
     display: flex;
     background-color: lightblue;
     height: 35px;

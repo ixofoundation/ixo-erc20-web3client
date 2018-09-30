@@ -1,139 +1,170 @@
 import Web3 from 'web3';
 import networks from '../web3/networks';
 
-
 export default class Web3Proxy {
+	constructor(
+		erc20ContractAbiJson,
+		erc20ContractAddress,
+		projectWalletFactoryContractAbiJson,
+		projectWalletFactoryContractAddress,
+		selectionChangeHandler,
+		defaultNetwork = networks.MAIN_NETWORK
+	) {
+		this._selectedAccount = '';
+		this._erc20ContractAbiJson = erc20ContractAbiJson;
+		this._erc20ContractAddress = erc20ContractAddress;
+		this._projectWalletFactoryContractAbiJson = projectWalletFactoryContractAbiJson;
+		this._projectWalletFactoryContractAddress = projectWalletFactoryContractAddress;
+		this._selectionChangeHandler = selectionChangeHandler;
+		this._defaultNetwork = defaultNetwork;
 
-    constructor(contractAbiJson, contractAddress, selectionChangeHandler, defaultNetwork=networks.MAIN_NETWORK) {
-        this._selectedAccount = "";
-        this._contractAbiJson = contractAbiJson;
-        this._contractAddress = contractAddress;
-        this._selectionChangeHandler = selectionChangeHandler;
-        this._defaultNetwork = defaultNetwork;
+		const { web3 } = window;
+		if (web3) {
+			this._web3old = window.web3;
+			this.initWithCurrentProvider(web3.currentProvider);
+		}
+	}
 
-        const { web3 } = window;
-        if (web3) {
-            this._web3old = window.web3;
-            this.initWithCurrentProvider(web3.currentProvider);
-        }
-    }
+	initWithCurrentProvider = provider => {
+		this._web3 = new Web3(provider);
+		this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
+		this._projectWalletContract = new this._web3.eth.Contract(this._projectWalletFactoryContractAbiJson, this._projectWalletFactoryContractAddress);
+		this._accountPollInterval = setInterval(() => {
+			this._pollForAccount();
+		}, 100);
+	};
 
-    initWithCurrentProvider = (provider) => {
-        this._web3 = new Web3(provider);
-        this._contract = new this._web3.eth.Contract(this._contractAbiJson, this._contractAddress);
-        this._accountPollInterval = setInterval(() => {
-            this._pollForAccount();
-        }, 100);
-    }
+	_pollForAccount = () => {
+		this._web3.eth.getAccounts().then(accounts => {
+			let account = accounts.length > 0 ? accounts[0] : undefined;
+			if (account !== this._selectedAccount) {
+				this._selectedAccount = account;
+				this._selectionChangeHandler();
+			}
+		});
+	};
 
-    _pollForAccount = () => {
-        this._web3.eth.getAccounts().then(accounts=>{
-            let account = (accounts.length > 0)?accounts[0]:undefined;
-            if (account !== this._selectedAccount) {
-                this._selectedAccount = account;
-                this._selectionChangeHandler();
-            }
-        });
-    }
+	getSelectedAccount = () => {
+		return this._selectedAccount;
+	};
 
-    getSelectedAccount = () => {
-        return this._selectedAccount;
-    }
+	getAccounts = () => {
+		return this._web3.eth.getAccounts();
+	};
 
-    getAccounts = () => {
-        return this._web3.eth.getAccounts();
-    }
+	getBalance = account => {
+		const contract = this._erc20Contract;
 
-    getBalance = (account) => {
-        const contract = this._contract;
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.balanceOf(account)
+				.call({ from: account })
+				.then(result => {
+					resolve(result);
+				})
+				.catch(error => {
+					reject(error);
+				});
+		});
+	};
 
-        return new Promise((resolve, reject) => {
-            contract.methods.balanceOf(account)
-            .call({ from: account })
-            .then(result=>{
-                resolve(result);
-            })
-            .catch(error=>{
-                reject(error);
-            });
-        })        
-    }    
-    
-    getDefaultAccount = () => {
-        return this._web3.eth.defaultAccount;
-    }
-    
-    setDefaultAccount = (account) => {
-        this._web3.eth.defaultAccount = account;
-    }
+	getDefaultAccount = () => {
+		return this._web3.eth.defaultAccount;
+	};
 
-    getNetwork = () => {
-        return this._web3.eth.net.getNetworkType();
-    }
+	setDefaultAccount = account => {
+		this._web3.eth.defaultAccount = account;
+	};
 
-    getDefaultNetwork = () => {
-        return this._defaultNetwork;
-    }
+	getNetwork = () => {
+		return this._web3.eth.net.getNetworkType();
+	};
 
-    setDefaultNetwork = (defaultNetwork) => {
-        this._defaultNetwork = defaultNetwork;
-    }
+	getDefaultNetwork = () => {
+		return this._defaultNetwork;
+	};
 
-    isDesiredNetwork = () => {
-        const defaultNetwork = this._defaultNetwork;
-        return this._web3.eth.net.getNetworkType().then(network=>{
-            return new Promise(resolve => resolve(defaultNetwork === network))
-        });
-    }
+	setDefaultNetwork = defaultNetwork => {
+		this._defaultNetwork = defaultNetwork;
+	};
 
-    transferTo = (beneficiaryAddress, amount) => {
-        const contract = this._contract;
+	isDesiredNetwork = () => {
+		const defaultNetwork = this._defaultNetwork;
+		return this._web3.eth.net.getNetworkType().then(network => {
+			return new Promise(resolve => resolve(defaultNetwork === network));
+		});
+	};
 
-        return new Promise((resolve, reject) => {
-            contract.methods.transfer(beneficiaryAddress, amount)
-            .send({ from: this._selectedAccount })
-            .on('transactionHash', hash=>{
-                resolve(hash);
-            })
-            .on('error', error=>{
-                reject(error)
-            });                
-        })
-    }
+	transferTo = (beneficiaryAddress, amount) => {
+		const contract = this._erc20Contract;
 
-    setMinter = (mintingAddress) => {
-        const contract = this._contract;
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.transfer(beneficiaryAddress, amount)
+				.send({ from: this._selectedAccount })
+				.on('transactionHash', hash => {
+					resolve(hash);
+				})
+				.on('error', error => {
+					reject(error);
+				});
+		});
+	};
 
-        return new Promise((resolve, reject) => {
-            contract.methods.setMinter(mintingAddress)
-            .send({ from: mintingAddress })
-            .on('transactionHash', hash=>{
-                resolve(hash);
-            })
-            .on('error', error=>{
-                reject(error)
-            })
-            .on('receipt', function(receipt){
-                console.log(receipt.contractAddress) // contains the new contract address
-            });
-        })
-    }
+	setMinter = mintingAddress => {
+		const contract = this._erc20Contract;
 
-    mintTo = (beneficiaryAddress, amount) => {
-        const contract = this._contract;
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.setMinter(mintingAddress)
+				.send({ from: mintingAddress })
+				.on('transactionHash', hash => {
+					resolve(hash);
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('receipt', function(receipt) {
+					console.log(receipt.contractAddress); // contains the new contract address
+				});
+		});
+	};
 
-        return new Promise((resolve, reject) => {
-            contract.methods.mint(beneficiaryAddress, amount)
-            .send({ from: this._selectedAccount })
-            .on('transactionHash', hash=>{
-                resolve(hash);
-            })
-            .on('error', error=>{
-                reject(error)
-            })
-            .on('receipt', function(receipt){
-                console.log(receipt.contractAddress) // contains the new contract address
-            });
-        })
-    }
+	mintTo = (beneficiaryAddress, amount) => {
+		const contract = this._erc20Contract;
+
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.mint(beneficiaryAddress, amount)
+				.send({ from: this._selectedAccount })
+				.on('transactionHash', hash => {
+					resolve(hash);
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('receipt', function(receipt) {
+					console.log(receipt.contractAddress); // contains the new contract address
+				});
+		});
+	};
+
+	createWallet = (tokenAddress, authAddress, projectName) => {
+		const contract = this._projectWalletContract;
+
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.createWallet(tokenAddress, authAddress, projectName)
+				.send({ from: this._selectedAccount })
+				.on('transactionHash', hash => {
+					resolve(hash);
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('receipt', function(receipt) {
+					console.log(receipt.contractAddress); // contains the new contract address
+				});
+		});
+	};
 }

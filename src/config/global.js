@@ -1,23 +1,30 @@
-const abi = require('./IxoERC20Token.abi.json');
+const erc20Abi = require('./IxoERC20Token.abi.json');
+const projectWalletAbi = require('./ProjectWalletFactory.abi.json');
 const environments = [
-  {
-    network: "ropsten",
-    contract: "0x7eef79aa5bbe0aba4f5d11017ecb604cd81f1f97",
-    owner: "0xb4b59c3acfeb9afd9398c88b2f6f003cbf29b553"
-  },
-  {
-    network: "private",
-    contract: "0x58250bafe2417d3c798f7a124b46ef81fbc185da",
-    owner: "0xd290d694d8e085c7637f173c082b2aa4d86cd879"
-  }
+	{
+		network: 'ropsten',
+		tokenContract: '0xe26d76587209cb1c7bd4c44ac23382b0c1ad69fc',
+		projectWalletContract: '0x47222edd16c3a345748f0dd2acbbd282bdff6052',
+		owner: '0x647CD1829Ad0FF896640FCd3a29cF6Af0dE10A83'
+	},
+	{
+		network: 'private',
+		tokenContract: '0xc2fb2a5543024a67d58c078403ba95d3ff54b1ed',
+		projectWalletContract: '0x47222edd16c3a345748f0dd2acbbd282bdff6052',
+		owner: '0xA8ede9207268dA9ea4502C0ce7fdb405CcE2170A'
+	}
 ];
 
-const environment = environments.find(env=>{return env.network===process.env.ETHEREUM_NETWORK});
+const environment = environments.find(env => {
+	return env.network === process.env.ETHEREUM_NETWORK;
+});
 const config = {
-  abi: JSON.stringify(abi),
-  contractNetwork: environment.network,
-  contractAddress: environment.contract,
-  contractOwner: environment.owner
+	erc20Abi: JSON.stringify(erc20Abi),
+	projectWalletAbi: JSON.stringify(projectWalletAbi),
+	contractNetwork: environment.network,
+	tokenContractAddress: environment.tokenContract,
+	projectWalletContractAddress: environment.projectWalletContract,
+	contractOwner: environment.owner
 };
 
 export default config;
