@@ -3,8 +3,8 @@ import config from 'react-global-configuration';
 import styled from 'styled-components';
 import Web3Proxy from '../../web3/web3-proxy';
 import MintInput from '../mint-input/mint-input';
-import TransferInput from '../transfer-input/transfer-input';
 import ProjectWalletInput from '../project-wallet-input/project-wallet-input';
+import TransferInput from '../transfer-input/transfer-input';
 
 const DashboardConsole = styled.div`
 	background-color: lightblue;
@@ -80,14 +80,14 @@ class Dashboard extends Component {
 			transferTransactionBeneficiaryAccount: '',
 			web3Proxy: new Web3Proxy(
 				erc20Abi,
-				config.get('tokenContractAddress'),
+				config.get('ixoERC20TokenContract'),
 				projectWalletAbi,
-				config.get('projectWalletContractAddress'),
+				config.get('projectWalletRegistryContract'),
 				this.handleSelectionChange,
 				config.get('desiredNetwork')
 			),
-			erc20ContractAddress: '',
-			authContractAddress: '',
+			erc20ContractAddress: config.get('ixoERC20TokenContract'),
+			authContractAddress: config.get('authContract'),
 			projectName: ''
 		};
 	}
@@ -162,22 +162,6 @@ class Dashboard extends Component {
 		});
 	};
 
-	//   transfer = () => {
-	//     this.state.web3Proxy.getAccounts().then(accounts=>{
-	//       const sendingAddress = (accounts.length > 0)?accounts[0]:undefined;
-	//       if (sendingAddress) {
-	// the beneficiaryAddress global config does not exist anymore
-	//         this.state.web3Proxy.transferTo(sendingAddress, config.get('beneficiaryAddress'), this.state.quantityToMint)
-	//         .then(txHash=>{
-	//           this.props.addOutputLine(`TX: ${txHash}`);
-	//         })
-	//         .catch(error=>{
-	//           this.props.addOutputLine(`error: ${error}`);
-	//         })
-	//       }
-	//     });
-	//   }
-
 	setMinter = () => {
 		this.state.web3Proxy.getAccounts().then(accounts => {
 			const mintingAddress = accounts.length > 0 ? accounts[0] : undefined;
@@ -228,14 +212,6 @@ class Dashboard extends Component {
 		this.setState({ transferTransactionBeneficiaryAccount: event.target.value });
 	};
 
-	handleErc20ContractAddressChange = event => {
-		this.setState({ erc20ContractAddress: event.target.value });
-	};
-
-	handleAuthContractAddressChange = event => {
-		this.setState({ authContractAddress: event.target.value });
-	};
-
 	handleProjectNameChange = event => {
 		this.setState({ projectName: event.target.value });
 	};
@@ -256,7 +232,7 @@ class Dashboard extends Component {
 
 	handleCreateProjectWallet = () => {
 		this.state.web3Proxy
-			.createWallet(this.state.erc20ContractAddress, this.state.authContractAddress, '0x' + new Buffer(this.state.projectName).toString('hex'))
+			.createWallet('0x' + new Buffer(this.state.projectName).toString('hex'))
 			.then(txHash => {
 				this.props.addOutputLine(`TX: ${txHash}`);
 			})
@@ -306,10 +282,6 @@ class Dashboard extends Component {
 				{this.state.isContractOwner && (
 					<ControlStrip>
 						<ProjectWalletInput
-							erc20ContractAddress={this.state.erc20ContractAddress}
-							handleTokenAddressChange={this.handleErc20ContractAddressChange}
-							authContractAddress={this.state.authContractAddress}
-							handleAuthAddressChange={this.handleAuthContractAddressChange}
 							projectName={this.state.projectName}
 							handelProjectNameChange={this.handleProjectNameChange}
 							handleCreateProjectWallet={this.handleCreateProjectWallet}

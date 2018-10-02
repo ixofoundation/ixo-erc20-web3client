@@ -42,29 +42,17 @@ const Button = styled.button`
 `;
 
 const ProjectWalletInput = ({
-	erc20ContractAddress,
-	handleTokenAddressChange,
-	authContractAddress,
-	handleAuthAddressChange,
 	projectName,
 	handelProjectNameChange,
 	handleCreateProjectWallet
 }) => (
 	<Container>
-		<Label>Token Address</Label>
-		<LongInputField type={'string'} value={erc20ContractAddress} onChange={handleTokenAddressChange} />
-		<Label>Auth Address</Label>
-		<LongInputField type={'string'} value={authContractAddress} onChange={handleAuthAddressChange} />
-		<Label>Project Name</Label>
+		<Label>Project DID</Label>
 		<LongInputField type={'string'} value={projectName} onChange={handelProjectNameChange} />
 		<Button onClick={handleCreateProjectWallet}>Create Project Wallet</Button>
 	</Container>
 );
 ProjectWalletInput.propTypes = {
-	erc20ContractAddress: PropTypes.string.isRequired,
-	handleTokenAddressChange: PropTypes.func.isRequired,
-	authContractAddress: PropTypes.string.isRequired,
-	handleAuthAddressChange: PropTypes.func.isRequired,
 	projectName: PropTypes.string.isRequired,
 	handelProjectNameChange: PropTypes.func.isRequired,
 	handleCreateProjectWallet: PropTypes.func.isRequired

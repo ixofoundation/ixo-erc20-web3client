@@ -5,20 +5,22 @@ export default class Web3Proxy {
 	constructor(
 		erc20ContractAbiJson,
 		erc20ContractAddress,
-		projectWalletFactoryContractAbiJson,
-		projectWalletFactoryContractAddress,
+		projectWalletRegistryContractAbiJson,
+		projectWalletRegistryContractAddress,
 		selectionChangeHandler,
 		defaultNetwork = networks.MAIN_NETWORK
 	) {
 		this._selectedAccount = '';
 		this._erc20ContractAbiJson = erc20ContractAbiJson;
 		this._erc20ContractAddress = erc20ContractAddress;
-		this._projectWalletFactoryContractAbiJson = projectWalletFactoryContractAbiJson;
-		this._projectWalletFactoryContractAddress = projectWalletFactoryContractAddress;
+		this._projectWalletRegistryContractAbiJson = projectWalletRegistryContractAbiJson;
+		this._projectWalletRegistryContractAddress = projectWalletRegistryContractAddress;
 		this._selectionChangeHandler = selectionChangeHandler;
 		this._defaultNetwork = defaultNetwork;
 
-		const { web3 } = window;
+		const {
+			web3
+		} = window;
 		if (web3) {
 			this._web3old = window.web3;
 			this.initWithCurrentProvider(web3.currentProvider);
@@ -28,7 +30,7 @@ export default class Web3Proxy {
 	initWithCurrentProvider = provider => {
 		this._web3 = new Web3(provider);
 		this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
-		this._projectWalletContract = new this._web3.eth.Contract(this._projectWalletFactoryContractAbiJson, this._projectWalletFactoryContractAddress);
+		this._projectWalletRegistryContract = new this._web3.eth.Contract(this._projectWalletRegistryContractAbiJson, this._projectWalletRegistryContractAddress);
 		this._accountPollInterval = setInterval(() => {
 			this._pollForAccount();
 		}, 100);
@@ -58,7 +60,9 @@ export default class Web3Proxy {
 		return new Promise((resolve, reject) => {
 			contract.methods
 				.balanceOf(account)
-				.call({ from: account })
+				.call({
+					from: account
+				})
 				.then(result => {
 					resolve(result);
 				})
@@ -101,7 +105,9 @@ export default class Web3Proxy {
 		return new Promise((resolve, reject) => {
 			contract.methods
 				.transfer(beneficiaryAddress, amount)
-				.send({ from: this._selectedAccount })
+				.send({
+					from: this._selectedAccount
+				})
 				.on('transactionHash', hash => {
 					resolve(hash);
 				})
@@ -117,14 +123,16 @@ export default class Web3Proxy {
 		return new Promise((resolve, reject) => {
 			contract.methods
 				.setMinter(mintingAddress)
-				.send({ from: mintingAddress })
+				.send({
+					from: mintingAddress
+				})
 				.on('transactionHash', hash => {
 					resolve(hash);
 				})
 				.on('error', error => {
 					reject(error);
 				})
-				.on('receipt', function(receipt) {
+				.on('receipt', function (receipt) {
 					console.log(receipt.contractAddress); // contains the new contract address
 				});
 		});
@@ -136,35 +144,39 @@ export default class Web3Proxy {
 		return new Promise((resolve, reject) => {
 			contract.methods
 				.mint(beneficiaryAddress, amount)
-				.send({ from: this._selectedAccount })
+				.send({
+					from: this._selectedAccount
+				})
 				.on('transactionHash', hash => {
 					resolve(hash);
 				})
 				.on('error', error => {
 					reject(error);
 				})
-				.on('receipt', function(receipt) {
+				.on('receipt', function (receipt) {
 					console.log(receipt.contractAddress); // contains the new contract address
 				});
 		});
 	};
 
-	createWallet = (tokenAddress, authAddress, projectName) => {
-		const contract = this._projectWalletContract;
+	createWallet = (projectName) => {
+		const contract = this._projectWalletRegistryContract;
 
 		return new Promise((resolve, reject) => {
 			contract.methods
-				.createWallet(tokenAddress, authAddress, projectName)
-				.send({ from: this._selectedAccount })
+				.ensureWallet(projectName)
+				.send({
+					from: this._selectedAccount
+				})
 				.on('transactionHash', hash => {
 					resolve(hash);
+				})
+				.on('receipt', receipt => {
+					console.log(JSON.stringify(receipt)); // contains the new contract address
 				})
 				.on('error', error => {
 					reject(error);
 				})
-				.on('receipt', function(receipt) {
-					console.log(receipt.contractAddress); // contains the new contract address
-				});
 		});
 	};
 }
