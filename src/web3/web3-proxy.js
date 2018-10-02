@@ -159,12 +159,12 @@ export default class Web3Proxy {
 		});
 	};
 
-	createWallet = (projectName) => {
+	createWallet = (projectDid) => {
 		const contract = this._projectWalletRegistryContract;
 
 		return new Promise((resolve, reject) => {
 			contract.methods
-				.ensureWallet(projectName)
+				.ensureWallet(projectDid)
 				.send({
 					from: this._selectedAccount
 				})
@@ -175,6 +175,24 @@ export default class Web3Proxy {
 					console.log(JSON.stringify(receipt)); // contains the new contract address
 				})
 				.on('error', error => {
+					reject(error);
+				})
+		});
+	};
+
+	getProjectWallet = (projectDid) => {
+		const contract = this._projectWalletRegistryContract;
+
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.walletOf(projectDid)
+				.call({
+					from: this._selectedAccount
+				})
+				.then(result => {
+					resolve(result);
+				})
+				.catch(error => {
 					reject(error);
 				})
 		});

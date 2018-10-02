@@ -88,7 +88,7 @@ class Dashboard extends Component {
 			),
 			erc20ContractAddress: config.get('ixoERC20TokenContract'),
 			authContractAddress: config.get('authContract'),
-			projectName: ''
+			projectDid: ''
 		};
 	}
 
@@ -212,8 +212,8 @@ class Dashboard extends Component {
 		this.setState({ transferTransactionBeneficiaryAccount: event.target.value });
 	};
 
-	handleProjectNameChange = event => {
-		this.setState({ projectName: event.target.value });
+	handleProjectDidChange = event => {
+		this.setState({ projectDid: event.target.value });
 	};
 
 	handleTokenMinting = event => {
@@ -232,7 +232,7 @@ class Dashboard extends Component {
 
 	handleCreateProjectWallet = () => {
 		this.state.web3Proxy
-			.createWallet('0x' + new Buffer(this.state.projectName).toString('hex'))
+			.createWallet('0x' + new Buffer(this.state.projectDid).toString('hex'))
 			.then(txHash => {
 				this.props.addOutputLine(`TX: ${txHash}`);
 			})
@@ -240,6 +240,17 @@ class Dashboard extends Component {
 				this.props.addOutputLine(`error: ${error}`);
 			});
 	};
+
+	handleGetProjectWalletAddress = () => {
+		this.state.web3Proxy
+			.getProjectWallet('0x' + new Buffer(this.state.projectDid).toString('hex'))
+			.then(address => {
+				this.props.addOutputLine(`Project Wallet Address: ${address}`);
+			})
+			.catch(error => {
+				this.props.addOutputLine(`${error}`);
+			});
+	}
 
 	handleTokenTransfer = event => {
 		if (this.state.transferTransactionBeneficiaryAccount && this.state.transferTransactionQuantity > 0) {
@@ -282,9 +293,10 @@ class Dashboard extends Component {
 				{this.state.isContractOwner && (
 					<ControlStrip>
 						<ProjectWalletInput
-							projectName={this.state.projectName}
-							handelProjectNameChange={this.handleProjectNameChange}
+							projectDid={this.state.projectDid}
+							handelProjectDidChange={this.handleProjectDidChange}
 							handleCreateProjectWallet={this.handleCreateProjectWallet}
+							handleGetProjectWalletAddress={this.handleGetProjectWalletAddress}
 						/>
 					</ControlStrip>
 				)}

@@ -42,19 +42,22 @@ const Button = styled.button`
 `;
 
 const ProjectWalletInput = ({
-	projectName,
-	handelProjectNameChange,
-	handleCreateProjectWallet
+	projectDid,
+	handelProjectDidChange,
+	handleCreateProjectWallet,
+	handleGetProjectWalletAddress
 }) => (
 	<Container>
 		<Label>Project DID</Label>
-		<LongInputField type={'string'} value={projectName} onChange={handelProjectNameChange} />
+		<LongInputField type={'string'} value={projectDid} onChange={handelProjectDidChange} />
 		<Button onClick={handleCreateProjectWallet}>Create Project Wallet</Button>
+		<Button onClick={handleGetProjectWalletAddress}>Get Project Wallet</Button>
 	</Container>
 );
 ProjectWalletInput.propTypes = {
-	projectName: PropTypes.string.isRequired,
-	handelProjectNameChange: PropTypes.func.isRequired,
-	handleCreateProjectWallet: PropTypes.func.isRequired
+	projectDid: PropTypes.string.isRequired,
+	handelProjectDidChange: PropTypes.func.isRequired,
+	handleCreateProjectWallet: PropTypes.func.isRequired,
+	handleGetProjectWalletAddress: PropTypes.func.isRequired
 };
 export default ProjectWalletInput;
