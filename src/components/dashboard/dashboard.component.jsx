@@ -249,11 +249,11 @@ class Dashboard extends Component {
 
 
 	generateLedgerObjectJson = (didDoc, signature, created) => {
-		// const signatureValue = signature
-		// return JSON.stringify({payload: [{type:"did/AddDid", value: didDoc}], signatures: [{signatureValue: signatureValue, created:created}]})
+		const signatureValue = signature
+		return JSON.stringify({payload: [{type:"did/AddDid", value: didDoc}], signatures: [{signatureValue: signatureValue, created:created}]})
 	
-		const signatureValue = [1, signature]
-		return JSON.stringify({payload: [10, didDoc], signature: {signatureValue, created}})
+		// const signatureValue = [1, signature]
+		// return JSON.stringify({payload: [10, didDoc], signature: {signatureValue, created}})
 	}
 
 
