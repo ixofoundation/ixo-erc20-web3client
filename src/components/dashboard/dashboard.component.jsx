@@ -3,6 +3,8 @@ import config from 'react-global-configuration';
 import styled from 'styled-components';
 import Web3Proxy from '../../web3/web3-proxy';
 import MintInput from '../mint-input/mint-input';
+import LedgeringInput from '../ledgering-input/ledgering-input';
+import SigningInput from '../signing-input/signing-input';
 import ProjectWalletInput from '../project-wallet-input/project-wallet-input';
 import TransferInput from '../transfer-input/transfer-input';
 
@@ -49,6 +51,11 @@ const InputField = styled.input`
 	font-size: 14px;
 `;
 
+const Checkbox = styled.input`
+	margin: auto;
+	font-size: 14px;
+`;
+
 const TerminalConsole = styled.div`
 	border-radius: 5px;
 	height: 75 0px;
@@ -65,6 +72,7 @@ const OutputLineList = styled.ul`
 	padding-inline-start: 10px;
 	font-family: 'Courier New';
 `;
+
 
 class Dashboard extends Component {
 	constructor(props) {
@@ -88,8 +96,17 @@ class Dashboard extends Component {
 			),
 			erc20ContractAddress: config.get('ixoERC20TokenContract'),
 			authContractAddress: config.get('authContract'),
-			projectDid: ''
+			projectDid: '',
+			ledgeringEncodingIsBase64: true
 		};
+	}
+
+	getIxoKeysafeProvider = () => {
+		if (!this.keysafeProvider) {
+			const IxoKeysafeInpageProvider = window['ixoKs']
+			this.keysafeProvider = new IxoKeysafeInpageProvider();
+		}
+		return this.keysafeProvider;
 	}
 
 	componentDidMount() {
@@ -196,6 +213,82 @@ class Dashboard extends Component {
 		}
 	};
 
+	getBlocksyncUrl = event => {
+		this.props.addOutputLine(`BLOCK_SYNC_URL: ${process.env.BLOCK_SYNC_URL}`);
+	}
+
+	getIxoWalletInfo = event => {
+		this.getIxoKeysafeProvider().getInfo((error, response)=>{
+			// alert(`Dashboard handling received response for INFO response: ${JSON.stringify(response)}, error: ${JSON.stringify(error)}`)
+			if (error) {
+				this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
+			} else {
+				this.props.addOutputLine(`response: ${JSON.stringify(response)}`);
+			}
+		})
+	};
+
+	handleDidLedgering = event => {
+		const keysafeProvider = this.getIxoKeysafeProvider();
+		keysafeProvider.getDidDoc((error, didDocResponse)=>{
+			if (error) {
+				this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
+			} else {
+				//this.props.addOutputLine(`response: ${JSON.stringify(didDocResponse)}`);
+				keysafeProvider.requestSigning(JSON.stringify(didDocResponse), (error, signatureResponse)=>{
+					if (error) {
+						this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
+					} else {
+						this.props.addOutputLine(`signature: ${signatureResponse.signatureValue}`);
+						this.ledgerThroughBlocksync(didDocResponse, signatureResponse)
+					}
+				}, this.state.ledgeringEncodingIsBase64?'base64':undefined)	
+			}
+		})
+	};
+
+
+	generateLedgerObjectJson = (didDoc, signature, created) => {
+		// const signatureValue = signature
+		// return JSON.stringify({payload: [{type:"did/AddDid", value: didDoc}], signatures: [{signatureValue: signatureValue, created:created}]})
+	
+		const signatureValue = [1, signature]
+		return JSON.stringify({payload: [10, didDoc], signature: {signatureValue, created}})
+	}
+
+
+	ledgerThroughBlocksync = (didDoc, signatureResponse) => {
+		const {signatureValue, created} = signatureResponse
+		const ledgerObjectJson = this.generateLedgerObjectJson(didDoc, signatureValue, created)
+		const ledgerObjectUppercaseHex = new Buffer(ledgerObjectJson).toString("hex").toUpperCase()
+
+		const ledgeringEndpoint = `${process.env.BLOCK_SYNC_URL}/api/blockchain/0x${ledgerObjectUppercaseHex}`
+
+		this.performLedgeringHttpRequest(ledgeringEndpoint, (response)=>{			
+			this.props.addOutputLine(response);
+		}, (status, text)=>{
+			this.props.addOutputLine(`failure callback from perform ledgering HTTP call status: \n${status}\ntext: \n${text}`);
+		})
+	}
+
+	performLedgeringHttpRequest = (url, success, failure) => {
+		var request = new XMLHttpRequest()
+		request.open("GET", url, true);
+		request.onreadystatechange = function() {
+		  if (request.readyState === 4) {
+			if (request.status === 200)
+			  success(request.responseText);
+			else if (failure)
+			  failure(request.status, request.statusText);
+		  }
+		};
+		request.send(null);
+	}
+
+	  
+	doSigning = event => {
+	};
+
 	handleMintingTransactionQuantityChange = event => {
 		this.setState({ mintingTransactionQuantity: parseInt(event.target.value) });
 	};
@@ -266,6 +359,11 @@ class Dashboard extends Component {
 		}
 	};
 
+	handleLedgeringEncodingIsBase64Change = event => {
+		debugger
+		this.setState({ ledgeringEncodingIsBase64: event.target.checked });
+	}
+
 	clearTerminal = () => {
 		this.props.clearOutputs();
 	};
@@ -278,6 +376,22 @@ class Dashboard extends Component {
 
 		return (
 			<DashboardConsole>
+				<ControlStrip>
+					<Button onClick={this.getBlocksyncUrl}>Blocksync URL</Button>
+					<Button onClick={this.getIxoWalletInfo}>ixo Wallet info</Button>
+					<LedgeringInput
+						encodingIsBase64={this.state.ledgeringEncodingIsBase64}
+						handleBase64EncodingChange={this.handleLedgeringEncodingIsBase64Change}
+						handleDidLedgering={this.handleDidLedgering}
+					/>
+				</ControlStrip>
+				{/* <ControlStrip>
+					<SigningInput
+						beneficiaryAddress={this.state.mintingTransactionBeneficiaryAccount}
+						handleBeneficiaryAddressChange={this.handleMintingTransactionBeneficiaryAddressChange}
+						handleTokenMinting={this.handleTokenMinting}
+					/>
+				</ControlStrip> */}
 				{this.state.isContractOwner && (
 					<ControlStrip>
 						<Button onClick={this.setMinter}>Set Minter</Button>
@@ -301,7 +415,7 @@ class Dashboard extends Component {
 					</ControlStrip>
 				)}
 				<ControlStrip>
-					<Button onClick={this.getAccount}>Account</Button>
+					<Button onClick={this.getAccount}>Ethereum Wallet info</Button>
 					<Button onClick={this.getNetwork}>Network</Button>
 					<Button onClick={this.getBalance}>Balance</Button>
 				</ControlStrip>
