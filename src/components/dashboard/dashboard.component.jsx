@@ -7,6 +7,8 @@ import LedgeringInput from '../ledgering-input/ledgering-input';
 import SigningInput from '../signing-input/signing-input';
 import ProjectWalletInput from '../project-wallet-input/project-wallet-input';
 import TransferInput from '../transfer-input/transfer-input';
+import { Ixo } from 'ixo-module';
+
 
 const DashboardConsole = styled.div`
 	background-color: lightblue;
@@ -99,6 +101,7 @@ class Dashboard extends Component {
 			projectDid: '',
 			ledgeringEncodingIsBase64: true
 		};
+		this.ixo = new Ixo(process.env.BLOCK_CHAIN_URL, process.env.BLOCK_SYNC_URL);
 	}
 
 	getIxoKeysafeProvider = () => {
@@ -240,13 +243,24 @@ class Dashboard extends Component {
 						this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
 					} else {
 						this.props.addOutputLine(`signature: ${signatureResponse.signatureValue}`);
-						this.ledgerThroughBlocksync(didDocResponse, signatureResponse)
+
+						// >> Ledger from local code
+						// this.ledgerThroughBlocksync(didDocResponse, signatureResponse)
+
+						// >> Ledger via ixo-module
+						this.ixo.user.registerUserDid(didDocResponse, signatureResponse).then((response) => {
+							if (response.code === 0) {
+								this.props.addOutputLine('Did document was ledgered successfully');
+							} else {
+								this.props.addOutputLine('Unable to ledger did at this time');
+							}
+						});
+	
 					}
 				}, this.state.ledgeringEncodingIsBase64?'base64':undefined)	
 			}
 		})
 	};
-
 
 	generateLedgerObjectJson = (didDoc, signature, created) => {
 		const signatureValue = signature
@@ -360,7 +374,6 @@ class Dashboard extends Component {
 	};
 
 	handleLedgeringEncodingIsBase64Change = event => {
-		debugger
 		this.setState({ ledgeringEncodingIsBase64: event.target.checked });
 	}
 
