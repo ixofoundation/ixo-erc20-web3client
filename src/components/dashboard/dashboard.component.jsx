@@ -99,7 +99,9 @@ class Dashboard extends Component {
 			erc20ContractAddress: config.get('ixoERC20TokenContract'),
 			authContractAddress: config.get('authContract'),
 			projectDid: '',
-			ledgeringEncodingIsBase64: true
+			ledgeringEncodingIsBase64: true,
+			messageSigningEncodingIsBase64: true,
+			messageToSign: '',
 		};
 		this.ixo = new Ixo(process.env.BLOCK_CHAIN_URL, process.env.BLOCK_SYNC_URL);
 	}
@@ -123,7 +125,8 @@ class Dashboard extends Component {
 	determineIfContractOwner = () => {
 		this.state.web3Proxy.getNetwork().then(network => {
 			const isContractNetwork = config.get('contractNetwork') === network;
-			const isContractOwner = isContractNetwork && this.state.web3Proxy.getSelectedAccount().toUpperCase() === config.get('contractOwner').toUpperCase();
+			const selectedAccount = (this.state.web3Proxy.getSelectedAccount())?this.state.web3Proxy.getSelectedAccount():'';
+			const isContractOwner = isContractNetwork && selectedAccount.toUpperCase() === config.get('contractOwner').toUpperCase();
 			this.setState({ isContractOwner });
 		});
 	};
@@ -311,6 +314,10 @@ class Dashboard extends Component {
 		this.setState({ mintingTransactionBeneficiaryAccount: event.target.value });
 	};
 
+	handleMessageToSignChange = event => {
+		this.setState({ messageToSign: event.target.value });
+	};
+
 	handleTransferTransactionQuantityChange = event => {
 		this.setState({ transferTransactionQuantity: parseInt(event.target.value) });
 	};
@@ -335,6 +342,17 @@ class Dashboard extends Component {
 					this.props.addOutputLine(`error: ${error}`);
 				});
 		}
+	};
+
+	handleSignMessage = event => {
+		const keysafeProvider = this.getIxoKeysafeProvider();
+		keysafeProvider.requestSigning(this.state.messageToSign, (error, messageSigningResponse)=>{
+			if (error) {
+				this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
+			} else {
+				this.props.addOutputLine(`signature: ${messageSigningResponse.signatureValue}`);
+			}
+		}, this.state.messageSigningEncodingIsBase64?'base64':undefined)
 	};
 
 	handleCreateProjectWallet = () => {
@@ -377,6 +395,10 @@ class Dashboard extends Component {
 		this.setState({ ledgeringEncodingIsBase64: event.target.checked });
 	}
 
+	handleMessageSigningEncodingIsBase64Change = event => {
+		this.setState({ messageSigningEncodingIsBase64: event.target.checked });
+	}
+
 	clearTerminal = () => {
 		this.props.clearOutputs();
 	};
@@ -398,13 +420,15 @@ class Dashboard extends Component {
 						handleDidLedgering={this.handleDidLedgering}
 					/>
 				</ControlStrip>
-				{/* <ControlStrip>
+				<ControlStrip>
 					<SigningInput
-						beneficiaryAddress={this.state.mintingTransactionBeneficiaryAccount}
-						handleBeneficiaryAddressChange={this.handleMintingTransactionBeneficiaryAddressChange}
-						handleTokenMinting={this.handleTokenMinting}
+						encodingIsBase64={this.state.messageSigningEncodingIsBase64}
+						handleBase64EncodingChange={this.handleMessageSigningEncodingIsBase64Change}
+						messageToSign={this.state.messageToSign}
+						handleMessageToSignChange={this.handleMessageToSignChange}
+						handleSignMessage={this.handleSignMessage}
 					/>
-				</ControlStrip> */}
+				</ControlStrip>
 				{this.state.isContractOwner && (
 					<ControlStrip>
 						<Button onClick={this.setMinter}>Set Minter</Button>

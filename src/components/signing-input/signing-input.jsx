@@ -47,23 +47,27 @@ const Checkbox = styled.input`
     font-size: 14px;
 `;
 
-const SigningInput = ({ quantity, handleQuantityChange, beneficiaryAddress, handleBeneficiaryAddressChange, handleTokenMinting }) => (
+const SigningInput = ({ encodingIsBase64, handleBase64EncodingChange, messageToSign, handleMessageToSignChange, handleSignMessage }) => (
   <Container>
     <Label>
         base64
     </Label>    
     <Checkbox
 		type={"checkbox"} 
+        onChange={handleBase64EncodingChange}
+        defaultChecked={encodingIsBase64}
 	/>
     <LongInputField
-        value={beneficiaryAddress} 
-        onChange={handleBeneficiaryAddressChange} />
-    <Button onClick={handleTokenMinting}>Sign</Button>
+        value={messageToSign} 
+        onChange={handleMessageToSignChange} />
+    <Button onClick={handleSignMessage}>Sign</Button>
   </Container>
 );
 SigningInput.propTypes = {
-    beneficiaryAddress: PropTypes.string.isRequired,
-    handleBeneficiaryAddressChange: PropTypes.func.isRequired,
-    handleTokenMinting: PropTypes.func.isRequired
+    encodingIsBase64: PropTypes.bool.isRequired,
+    handleBase64EncodingChange: PropTypes.func.isRequired,
+    messageToSign: PropTypes.string.isRequired,
+    handleMessageToSignChange: PropTypes.func.isRequired,
+    handleSignMessage: PropTypes.func.isRequired
 };
 export default SigningInput;
