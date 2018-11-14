@@ -2,9 +2,9 @@ const erc20Abi = require('./IxoERC20Token.abi.json');
 const projectWalletAbi = require('./ProjectWalletRegistry.abi.json');
 const environments = [{
 		network: 'ropsten',
-		ixoERC20TokenContract: '0xd5250c5c3574476a754619f66ede275e042af3fb',
-		projectWalletRegistryContract: '0xcd155cb5faa1e1505192a769c7549a48dd1834e6',
-		authContract: '0xaa6b6ac3464b71ee9a1036936f3accb7300149b2',
+		ixoERC20TokenContract: '0xa3ff536d68969b3d152269d8c084071b2c7bf040',
+		projectWalletRegistryContract: '0xd4a2e6d5bbc8255138cf47b622a5eee64cf89de6',
+		authContract: '0x74cd3ed60ea64c1a9beac11aba52487d86c1a110',
 		owner: '0x647CD1829Ad0FF896640FCd3a29cF6Af0dE10A83'
 	},
 	{

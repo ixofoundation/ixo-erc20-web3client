@@ -350,6 +350,7 @@ class Dashboard extends Component {
 			if (error) {
 				this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
 			} else {
+				this.setState({ messageToSign: "" });
 				this.props.addOutputLine(`signature: ${messageSigningResponse.signatureValue}`);
 			}
 		}, this.state.messageSigningEncodingIsBase64?'base64':undefined)
