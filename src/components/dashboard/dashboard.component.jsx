@@ -346,7 +346,8 @@ class Dashboard extends Component {
 
 	handleSignMessage = event => {
 		const keysafeProvider = this.getIxoKeysafeProvider();
-		keysafeProvider.requestSigning(this.state.messageToSign, (error, messageSigningResponse)=>{
+		var data = JSON.parse(this.state.messageToSign);
+		keysafeProvider.requestSigning(JSON.stringify(data), (error, messageSigningResponse)=>{
 			if (error) {
 				this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
 			} else {
