@@ -25,9 +25,9 @@ const LongInputField = styled(InputField)`
 `;
 
 const Label = styled.div`
-    padding: 0px 5px;
     display: flex;
     align-items: center;
+    font: 15px arial, sans-serif;
 `;
 
 const Button = styled.button`

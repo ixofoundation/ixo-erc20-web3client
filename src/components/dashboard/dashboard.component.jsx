@@ -7,6 +7,7 @@ import LedgeringInput from '../ledgering-input/ledgering-input';
 import SigningInput from '../signing-input/signing-input';
 import ProjectWalletInput from '../project-wallet-input/project-wallet-input';
 import TransferInput from '../transfer-input/transfer-input';
+import WithdrawInput from '../withdraw-input/withdraw-input';
 import { Ixo } from 'ixo-module';
 
 
@@ -21,8 +22,8 @@ const DashboardConsole = styled.div`
 const ControlStrip = styled.div`
 	border: 1px solid blue;
 	border-radius: 5px;
-	height: 40px;
 	background-color: lightblue;
+	padding: 5px;
 	margin-left: 15px;
 	margin-right: 15px;
 	margin-top: 10px;
@@ -88,6 +89,7 @@ class Dashboard extends Component {
 			mintingTransactionBeneficiaryAccount: '',
 			transferTransactionQuantity: 0,
 			transferTransactionBeneficiaryAccount: '',
+			withdrawFromProjectDid: '',
 			web3Proxy: new Web3Proxy(
 				erc20Abi,
 				config.get('ixoERC20TokenContract'),
@@ -329,6 +331,10 @@ class Dashboard extends Component {
 	handleProjectDidChange = event => {
 		this.setState({ projectDid: event.target.value });
 	};
+	
+	handleWithdrawProjectDidChange = event => {
+		this.setState({ withdrawFromProjectDid: event.target.value });
+	};
 
 	handleTokenMinting = event => {
 		if (this.state.mintingTransactionBeneficiaryAccount && this.state.mintingTransactionQuantity > 0) {
@@ -390,6 +396,40 @@ class Dashboard extends Component {
 				.catch(error => {
 					this.props.addOutputLine(`error: ${error}`);
 				});
+		}
+	};
+
+	// withdrawFromProjectDid
+	handleWithdrawFromProject = event => {
+		if (this.state.withdrawFromProjectDid) {
+			this.getIxoKeysafeProvider().getInfo((error, response)=>{
+				if (error) {
+					this.props.addOutputLine(`error: ${JSON.stringify(error)}`);
+				} else {		
+					const payload = {
+						data: {
+							projectDid: this.state.withdrawFromProjectDid,
+							ethWallet: this.state.web3Proxy.getSelectedAccount(),
+							isRefund: false
+						},
+						senderDid: response.didDoc.did
+					};
+	
+					this.getIxoKeysafeProvider().requestSigning(JSON.stringify(payload), (error, signature) => {
+						if (!error) {
+							this.ixo.project.payOutToEthWallet(payload, signature).then((response) => {
+								debugger;
+								if (response.code === 0) {
+									this.props.addOutputLine('Withdraw requested successfully');
+								} else {
+									this.props.addOutputLine('Unable to request a withdrawal at this time');
+									this.props.addOutputLine(JSON.stringify(response));
+								}
+							});
+						} 
+					}, 'base64');
+				}
+			})
 		}
 	};
 
@@ -465,6 +505,13 @@ class Dashboard extends Component {
 						beneficiaryAddress={this.state.transferTransactionBeneficiaryAccount}
 						handleBeneficiaryAddressChange={this.handleTransferTransactionBeneficiaryAddressChange}
 						handleTokenTransfer={this.handleTokenTransfer}
+					/>
+				</ControlStrip>
+				<ControlStrip>
+					<WithdrawInput
+						projectDid={this.state.withdrawFromProjectDid}
+						handleProjectDidChange={this.handleWithdrawProjectDidChange}
+						handleTokenWithdrawal={this.handleWithdrawFromProject}
 					/>
 				</ControlStrip>
 				<TerminalConsole>

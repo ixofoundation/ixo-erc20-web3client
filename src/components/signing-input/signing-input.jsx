@@ -5,12 +5,10 @@ import PropTypes from "prop-types";
 const Container = styled.div`
     display: flex;
     background-color: lightblue;
-    height: 35px;
     margin: auto;
 `;
 
-const InputField = styled.input`
-  height: 25px;
+const InputField = styled.textarea`
   width: 75px;
   color: black;
   background: lightgrey;
@@ -21,7 +19,7 @@ const InputField = styled.input`
 `;
 
 const LongInputField = styled(InputField)`
-    width: 1450px;
+    width: 1000px;
     margin-left: 5px;
 `;
 
@@ -58,6 +56,7 @@ const SigningInput = ({ encodingIsBase64, handleBase64EncodingChange, messageToS
         defaultChecked={encodingIsBase64}
 	/>
     <LongInputField
+        rows="5"
         value={messageToSign} 
         onChange={handleMessageToSignChange} />
     <Button onClick={handleSignMessage}>Sign</Button>
