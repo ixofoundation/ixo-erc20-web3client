@@ -1,3 +1,0 @@
-ETHEREUM_NETWORK="ropsten"
-BLOCK_SYNC_URL="https://explorer_audit.ixo.world"
-BLOCK_CHAIN_URL="http://blockchain_audit.ixo.world:46657"
