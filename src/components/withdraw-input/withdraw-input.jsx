@@ -41,26 +41,18 @@ const Button = styled.button`
     font-size: 14px;
 `;
 
-const TransferInput = ({ quantity, handleQuantityChange, beneficiaryAddress, handleBeneficiaryAddressChange, handleTokenTransfer }) => (
+const WithdrawInput = ({ projectDid, handleProjectDidChange, handleTokenWithdrawal }) => (
   <Container>
-    <Label>Transfer</Label>
-    <InputField
-        type={"number"} 
-        value={quantity} 
-        onChange={handleQuantityChange} 
-        step={10000} min={0} />
-    <Label>to</Label>
+    <Label>Withdraw from Project: </Label>
     <LongInputField
-        value={beneficiaryAddress} 
-        onChange={handleBeneficiaryAddressChange} />
-    <Button onClick={handleTokenTransfer}>Send</Button>
+        value={projectDid} 
+        onChange={handleProjectDidChange} />
+    <Button onClick={handleTokenWithdrawal}>Request</Button>
   </Container>
 );
-TransferInput.propTypes = {
-    quantity: PropTypes.number.isRequired,
-    handleQuantityChange: PropTypes.func.isRequired,
-    beneficiaryAddress: PropTypes.string.isRequired,
-    handleBeneficiaryAddressChange: PropTypes.func.isRequired,
-    handleTokenTransfer: PropTypes.func.isRequired
+WithdrawInput.propTypes = {
+    projectDid: PropTypes.string.isRequired,
+    handleProjectDidChange: PropTypes.func.isRequired,
+    handleTokenWithdrawal: PropTypes.func.isRequired
 };
-export default TransferInput;
+export default WithdrawInput;

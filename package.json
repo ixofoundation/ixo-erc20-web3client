@@ -29,7 +29,7 @@
     "webpack-dev-server": "^3.1.7"
   },
   "dependencies": {
-    "ixo-module": "^2.0.0",
+    "ixo-module": "^2.0.3",
     "react-redux": "^5.0.7",
     "redux": "^4.0.0",
     "redux-logger": "^3.0.6",
