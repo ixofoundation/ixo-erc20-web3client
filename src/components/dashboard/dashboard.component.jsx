@@ -445,6 +445,11 @@ class Dashboard extends Component {
 		this.props.clearOutputs();
 	};
 
+	popupKeysafe = () => {
+		const keysafeProvider = this.getIxoKeysafeProvider();
+		keysafeProvider.popupKeysafe();
+	};
+
 	render() {
 		const outputLines = this.props.outputLines.map(outputLine => {
 			console.log(`outputLine: ${JSON.stringify(outputLine)}`);
@@ -454,6 +459,7 @@ class Dashboard extends Component {
 		return (
 			<DashboardConsole>
 				<ControlStrip>
+					<Button onClick={this.popupKeysafe}>Popup Keysafe</Button>
 					<Button onClick={this.getBlocksyncUrl}>Blocksync URL</Button>
 					<Button onClick={this.getIxoWalletInfo}>ixo Wallet info</Button>
 					<LedgeringInput
